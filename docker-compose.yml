@@ -27,7 +27,6 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DB_URL: postgresql://exampledb:exampledb@postgres:5432/exampledb
       APPROLE_ID: exampledb
-      APPROLE_SECRET_ID: ea59b2e5-7372-febd-e456-445c73c239c7
+      APPROLE_SECRET_ID: b5670ecc-1845-a9d7-5c42-df570d64a101
       VAULT_ADDR: vault:8200

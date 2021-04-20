@@ -3,6 +3,8 @@ FROM python:3.8-slim-buster
 
 EXPOSE 8000
 
+RUN apt-get update && apt-get install libpq-dev build-essential python3-dev -y
+
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 

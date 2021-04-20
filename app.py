@@ -1,19 +1,24 @@
-from fastapi import FastAPI
-import os
-import requests
+from typing import List
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from db import crud, models, schemas
+from db.database import engine, get_db
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-role_id = os.getenv("APPROLE_ID", "")
-role_secret = os.getenv("APPROLE_SECRET_ID", "")
-vault_addr = os.getenv("VAULT_ADDR", "localhost:8200")
 
-@app.get("/")
-async def root():
-    vault_token = requests.post(f"http://{vault_addr}/v1/auth/approle/login", {"role_id": role_id, "secret_id": role_secret})
-    response = vault_token.json()
-    print(response["auth"]["client_token"])
-    token = response["auth"]["client_token"]
-    db_credentials = requests.get(f"http://{vault_addr}/v1/database/creds/exampledb-pg", headers={'X-Vault-Token': token})
-    print(db_credentials.text)
-    return {"message": "Hello World"}
+@app.post("/", response_model=schemas.Item)
+async def add_item(item: schemas.Item, db: Session = Depends(get_db)):
+    item = crud.get_item_by_title(db, title=item.title)
+    if item:
+        raise HTTPException(status_code=400, detail="Item already exists")
+    return crud.add_item(db=db, item=item)
+
+
+@app.get("/", response_model=List[schemas.Item])
+async def root(db: Session = Depends(get_db)):
+    items = crud.get_items(db)
+    return items
